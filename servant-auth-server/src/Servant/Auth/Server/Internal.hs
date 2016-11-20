@@ -39,6 +39,7 @@ instance ( HasServer (AddSetCookieApi api) ctxs, AreAuths auths ctxs v
         let csrf = Cookie.def
              { Cookie.setCookieName = xsrfCookieName cookieSettings
              , Cookie.setCookieValue = csrf'
+             , Cookie.setCookiePath = cookiePath cookieSettings
              , Cookie.setCookieMaxAge = cookieMaxAge cookieSettings
              , Cookie.setCookieExpires = cookieExpires cookieSettings
              , Cookie.setCookieSecure = case cookieIsSecure cookieSettings of
