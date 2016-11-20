@@ -73,6 +73,7 @@ defaultCookieSettings :: CookieSettings
 defaultCookieSettings = CookieSettings
     { cookieIsSecure    = Secure
     , cookieMaxAge      = Nothing
+    , cookiePath        = Nothing
     , cookieExpires     = Nothing
     , cookieSameSite    = SameSiteLax
     , sessionCookieName = "JWT-Cookie"
