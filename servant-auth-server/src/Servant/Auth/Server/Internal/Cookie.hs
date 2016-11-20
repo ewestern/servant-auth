@@ -80,6 +80,7 @@ makeCookie cookieSettings jwtSettings v = do
         { setCookieName = sessionCookieName cookieSettings
         , setCookieValue = BSL.toStrict jwt
         , setCookieHttpOnly = True
+        , setCookiePath = cookiePath cookieSettings
         , setCookieMaxAge = cookieMaxAge cookieSettings
         , setCookieExpires = cookieExpires cookieSettings
         , setCookieSecure = case cookieIsSecure cookieSettings of
