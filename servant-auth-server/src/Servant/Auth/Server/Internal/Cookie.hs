@@ -17,29 +17,21 @@ import Servant.Auth.Server.Internal.JWT         (FromJWT (decodeJWT), ToJWT,
                                                  makeJWT)
 import Servant.Auth.Server.Internal.Types
 
-import Debug.Trace
 
 cookieAuthCheck :: (Show usr, FromJWT usr) => CookieSettings -> JWTSettings -> AuthCheck usr
 cookieAuthCheck ccfg jwtCfg = do
   req <- ask
   jwtCookie <- maybe mempty return $ do
     cookies' <- lookup "Cookie" $ requestHeaders req
-    traceShowM "cookies"
-    traceShowM cookies'
     let cookies = parseCookies cookies'
     -- session cookie *must* be HttpOnly and Secure
     lookup (sessionCookieName ccfg) cookies
   verifiedJWT <- liftIO $ runExceptT $ do
-    traceShowM "jwtCook" 
-    traceShowM jwtCookie
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict jwtCookie
-    traceShowM  unverifiedJWT
     Jose.validateJWSJWT (jwtSettingsToJwtValidationSettings jwtCfg)
                         (key jwtCfg)
                          unverifiedJWT
     return unverifiedJWT
-  traceShowM "verified"
-  traceShowM verifiedJWT
   case verifiedJWT of
     Left (_ :: Jose.JWTError) -> mzero
     Right v -> case decodeJWT v of
@@ -48,7 +40,6 @@ cookieAuthCheck ccfg jwtCfg = do
 
 cookieCSRFAuthCheck :: (Show usr, FromJWT usr) => CookieSettings -> JWTSettings -> AuthCheck usr
 cookieCSRFAuthCheck ccfg jwtCfg = do
-  traceShowM "CSRF COKOIE"
   req <- ask
   jwtCookie <- maybe mempty return $ do
     cookies' <- lookup "Cookie" $ requestHeaders req
@@ -60,7 +51,6 @@ cookieCSRFAuthCheck ccfg jwtCfg = do
     lookup (sessionCookieName ccfg) cookies
   verifiedJWT <- liftIO $ runExceptT $ do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict jwtCookie
-    traceShowM  unverifiedJWT
     Jose.validateJWSJWT (jwtSettingsToJwtValidationSettings jwtCfg)
                         (key jwtCfg)
                          unverifiedJWT
