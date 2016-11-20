@@ -1,14 +1,17 @@
 {-# LANGUAGE UndecidableInstances #-}
+
 module Servant.Auth.Server.Internal.Class where
 
 import Servant.Auth
 import Data.Monoid
 import Servant hiding (BasicAuth)
+import GHC.TypeLits                             (KnownSymbol)
 
 import Servant.Auth.Server.Internal.Types
 import Servant.Auth.Server.Internal.ConfigTypes
 import Servant.Auth.Server.Internal.BasicAuth
 import Servant.Auth.Server.Internal.Cookie
+import Servant.Auth.Server.Internal.URLToken
 import Servant.Auth.Server.Internal.JWT
 
 -- | @IsAuth a ctx v@ indicates that @a@ is an auth type that expects all
@@ -25,6 +28,10 @@ instance FromJWT usr => IsAuth Cookie usr where
 instance FromJWT usr => IsAuth CookieCSRF usr where
   type AuthArgs CookieCSRF = '[CookieSettings, JWTSettings]
   runAuth _ _ = cookieCSRFAuthCheck
+
+instance (FromJWT usr, KnownSymbol name) => IsAuth (URLToken name) usr where
+  type AuthArgs (URLToken name) = '[JWTSettings]
+  runAuth _ _ = tokenAuthCheck (Proxy :: Proxy name)
 
 instance FromJWT usr => IsAuth JWT usr where
   type AuthArgs JWT = '[JWTSettings]
