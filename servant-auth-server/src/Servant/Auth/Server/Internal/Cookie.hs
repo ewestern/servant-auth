@@ -19,33 +19,48 @@ import Servant.Auth.Server.Internal.Types
 
 import Debug.Trace
 
-
 cookieAuthCheck :: (Show usr, FromJWT usr) => CookieSettings -> JWTSettings -> AuthCheck usr
 cookieAuthCheck ccfg jwtCfg = do
   req <- ask
   jwtCookie <- maybe mempty return $ do
     cookies' <- lookup "Cookie" $ requestHeaders req
     let cookies = parseCookies cookies'
-    xsrfCookie <- lookup (xsrfCookieName ccfg) cookies
-    traceShowM "xsrf"
-    traceShowM xsrfCookie
-    xsrfHeader <- lookup (mk $ xsrfHeaderName ccfg) $ requestHeaders req
-    guard $ xsrfCookie `constTimeEq` xsrfHeader
     -- session cookie *must* be HttpOnly and Secure
-    traceShowM "pass guard"
     lookup (sessionCookieName ccfg) cookies
   verifiedJWT <- liftIO $ runExceptT $ do
     unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict jwtCookie
-    traceShowM "decode jwt"
     traceShowM  unverifiedJWT
     Jose.validateJWSJWT (jwtSettingsToJwtValidationSettings jwtCfg)
                         (key jwtCfg)
                          unverifiedJWT
-    traceShowM "pass validation"
     return unverifiedJWT
   case verifiedJWT of
     Left (_ :: Jose.JWTError) -> mzero
-    Right v -> case traceShowId $ decodeJWT v of
+    Right v -> case decodeJWT v of
+      Left _ -> mzero
+      Right v' -> return v'
+
+cookieCSRFAuthCheck :: (Show usr, FromJWT usr) => CookieSettings -> JWTSettings -> AuthCheck usr
+cookieCSRFAuthCheck ccfg jwtCfg = do
+  req <- ask
+  jwtCookie <- maybe mempty return $ do
+    cookies' <- lookup "Cookie" $ requestHeaders req
+    let cookies = parseCookies cookies'
+    xsrfCookie <- lookup (xsrfCookieName ccfg) cookies
+    xsrfHeader <- lookup (mk $ xsrfHeaderName ccfg) $ requestHeaders req
+    guard $ xsrfCookie `constTimeEq` xsrfHeader
+    -- session cookie *must* be HttpOnly and Secure
+    lookup (sessionCookieName ccfg) cookies
+  verifiedJWT <- liftIO $ runExceptT $ do
+    unverifiedJWT <- Jose.decodeCompact $ BSL.fromStrict jwtCookie
+    traceShowM  unverifiedJWT
+    Jose.validateJWSJWT (jwtSettingsToJwtValidationSettings jwtCfg)
+                        (key jwtCfg)
+                         unverifiedJWT
+    return unverifiedJWT
+  case verifiedJWT of
+    Left (_ :: Jose.JWTError) -> mzero
+    Right v -> case decodeJWT v of
       Left _ -> mzero
       Right v' -> return v'
 

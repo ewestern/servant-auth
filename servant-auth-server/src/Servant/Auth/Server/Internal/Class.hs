@@ -22,6 +22,10 @@ instance FromJWT usr => IsAuth Cookie usr where
   type AuthArgs Cookie = '[CookieSettings, JWTSettings]
   runAuth _ _ = cookieAuthCheck
 
+instance FromJWT usr => IsAuth CookieCSRF usr where
+  type AuthArgs CookieCSRF = '[CookieSettings, JWTSettings]
+  runAuth _ _ = cookieCSRFAuthCheck
+
 instance FromJWT usr => IsAuth JWT usr where
   type AuthArgs JWT = '[JWTSettings]
   runAuth _ _ = jwtAuthCheck
