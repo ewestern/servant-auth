@@ -16,6 +16,7 @@ import Servant.Auth.Server.Internal.JWT
 import Servant.Auth.Server.Internal.Types
 
 import Servant.Server.Internal.RoutingApplication
+import Debug.Trace
 
 instance ( HasServer (AddSetCookieApi api) ctxs, AreAuths auths ctxs v
          , AddSetCookie (ServerT api Handler) (ServerT (AddSetCookieApi api) Handler)
