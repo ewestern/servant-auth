@@ -5,13 +5,13 @@ packages:
 - servant-auth-client
 - servant-auth-docs
 extra-deps:
-- aeson-0.11.2.1
+- aeson-0.11.3.0
 - bytestring-builder-0.10.8.1.0
 - call-stack-0.1.0
-- fast-logger-2.4.7
-- hspec-2.3.2
-- hspec-core-2.3.2
-- hspec-discover-2.3.2
+- fast-logger-2.4.10
+- hspec-2.4.1
+- hspec-core-2.4.1
+- hspec-discover-2.4.1
 - hspec-expectations-0.8.2
 - http-api-data-0.3.3
 - jose-0.5.0.0
@@ -19,8 +19,9 @@ extra-deps:
 - servant-0.9.1.1
 - servant-client-0.9.1.1
 - servant-docs-0.9.1.1
-- servant-server-0.9.1
+- servant-server-0.9.1.1
+- unix-compat-0.4.3.1
 - unix-time-0.3.7
-- wai-extra-3.0.19
-- warp-3.2.9
+- wai-extra-3.0.19.1
+- warp-3.2.11
 resolver: lts-6.7
