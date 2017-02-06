@@ -38,7 +38,7 @@ library
     , bytestring
     , servant-client      >= 0.7  && < 0.11
     , servant-auth        == 0.2.*
-    , servant             >= 0.7  && < 0.10
+    , servant             >= 0.7  && < 0.11
   exposed-modules:
       Servant.Auth.Client
       Servant.Auth.Client.Internal
@@ -57,7 +57,7 @@ test-suite doctest
     , bytestring
     , servant-client      >= 0.7  && < 0.11
     , servant-auth        == 0.2.*
-    , servant             >= 0.7  && < 0.10
+    , servant             >= 0.7  && < 0.11
     , doctest >= 0.9 && < 0.12
     , Glob >= 0.7 && < 0.8
     , yaml == 0.8.*
@@ -79,7 +79,7 @@ test-suite spec
     , bytestring
     , servant-client      >= 0.7  && < 0.11
     , servant-auth        == 0.2.*
-    , servant             >= 0.7  && < 0.10
+    , servant             >= 0.7  && < 0.11
     , servant-auth-client
     , hspec > 2 && < 3
     , QuickCheck >= 2.8 && < 2.9
