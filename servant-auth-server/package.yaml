@@ -94,7 +94,7 @@ executables:
     dependencies:
       - servant-auth
       - servant-auth-server
-      - servant-server  >= 0.9.1 && < 0.10
+      - servant-server  >= 0.9.1 && < 0.11
       - warp
       - markdown-unlit
       - transformers
