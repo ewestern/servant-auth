@@ -1,5 +1,5 @@
 name:                servant-auth
-version:             0.2.0.0
+version:             0.2.1.0
 synopsis:            Authentication combinators for servant
 description:         |
     This package provides an @Auth@ combinator for 'servant'. This combinator
@@ -19,6 +19,9 @@ category:            Web, Servant, Authentication
 copyright:           (c) Julian K. Arni
 github:              plow-technologies/servant-auth
 tested-with:         GHC == 7.10.2, GHC == 8.0.1
+
+extra-source-files:
+  - package.yaml
 
 ghc-options: -Wall
 
