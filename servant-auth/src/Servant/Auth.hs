@@ -1,5 +1,6 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 module Servant.Auth where
+import           GHC.TypeLits (Symbol)
 
 -- * Authentication
 
@@ -25,6 +26,8 @@ data JWT
 data CookieCSRF
 
 data Cookie
+
+data URLToken (name :: Symbol)
 
 -- We could use 'servant''s BasicAuth, but then we don't get control over the
 -- documentation, and we'd have to polykind everything. (Also, we don't
