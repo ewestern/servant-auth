@@ -49,9 +49,7 @@ data CookieSettings = CookieSettings
   {
   -- | 'Secure' means browsers will only send cookies over HTTPS. Default:
   -- @Secure@.
-    cookiePath         :: Maybe BS.ByteString
- 
-  , cookieIsSecure    :: IsSecure
+    cookieIsSecure    :: IsSecure
   -- | How long from now until the cookie expires. Default: @Nothing@
   , cookieMaxAge      :: Maybe DiffTime
   -- | At what time the cookie expires. Default: @Nothing@.
@@ -77,7 +75,6 @@ defaultCookieSettings :: CookieSettings
 defaultCookieSettings = CookieSettings
     { cookieIsSecure    = Secure
     , cookieMaxAge      = Nothing
-    , cookiePath        = Nothing
     , cookieExpires     = Nothing
     , cookiePath        = Just "/"
     , cookieSameSite    = SameSiteLax

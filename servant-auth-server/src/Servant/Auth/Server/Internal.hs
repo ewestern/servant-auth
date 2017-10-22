@@ -37,17 +37,6 @@ instance ( n ~ 'S ('S 'Z)
       authCheck :: DelayedIO (AuthResult v, SetCookieList ('S ('S 'Z)))
       authCheck = withRequest $ \req -> liftIO $ do
         authResult <- runAuthCheck (runAuths (Proxy :: Proxy auths) context) req
-        csrf' <- csrfCookie
-        let csrf = Cookie.def
-             { Cookie.setCookieName = xsrfCookieName cookieSettings
-             , Cookie.setCookieValue = csrf'
-             , Cookie.setCookiePath = cookiePath cookieSettings
-             , Cookie.setCookieMaxAge = cookieMaxAge cookieSettings
-             , Cookie.setCookieExpires = cookieExpires cookieSettings
-             , Cookie.setCookieSecure = case cookieIsSecure cookieSettings of
-                  Secure -> True
-                  NotSecure -> False
-             }
         cookies <- makeCookies authResult
         return (authResult, cookies)
 
