@@ -1,4 +1,5 @@
 /dist/
 dist-newstyle/
-/.stack-work/
+.ghc.environment.*
+.stack-work
 *.tix

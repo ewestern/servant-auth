@@ -1,10 +1,10 @@
--- This file has been generated from package.yaml by hpack version 0.17.1.
+-- This file has been generated from package.yaml by hpack version 0.18.1.
 --
 -- see: https://github.com/sol/hpack
 
-name:           servant-auth-docs
+name:           servant-auth-swagger
 version:        0.2.7.0
-synopsis:       servant-docs/servant-auth compatibility
+synopsis:       servant-swagger/servant-auth compatibility
 description:    Please see README.md
 category:       Web, Servant, Authentication
 homepage:       http://github.com/plow-technologies/servant-auth#readme
@@ -14,7 +14,7 @@ maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
 license:        BSD3
 license-file:   LICENSE
-tested-with:    GHC == 7.10.2, GHC == 8.0.1
+tested-with:    GHC == 7.10.2, GHC == 8.0.1, GHC == 8.2.1
 build-type:     Simple
 cabal-version:  >= 1.10
 
@@ -33,12 +33,13 @@ library
   build-depends:
       base >= 4.7 && < 4.11
     , text
-    , servant-docs
+    , servant-swagger
+    , swagger2 >= 2 && < 3
     , servant
     , servant-auth == 0.2.*
     , lens
   exposed-modules:
-      Servant.Auth.Docs
+      Servant.Auth.Swagger
   default-language: Haskell2010
 
 test-suite doctest
@@ -51,7 +52,8 @@ test-suite doctest
   build-depends:
       base >= 4.7 && < 4.11
     , text
-    , servant-docs
+    , servant-swagger
+    , swagger2 >= 2 && < 3
     , servant
     , servant-auth == 0.2.*
     , lens
@@ -70,11 +72,15 @@ test-suite spec
   build-depends:
       base >= 4.7 && < 4.11
     , text
-    , servant-docs
+    , servant-swagger
+    , swagger2 >= 2 && < 3
     , servant
     , servant-auth == 0.2.*
     , lens
-    , servant-auth-docs
+    , servant-auth-swagger
+    , yaml
     , hspec > 2 && < 3
     , QuickCheck >= 2.8 && < 2.11
+  other-modules:
+      Servant.Auth.SwaggerSpec
   default-language: Haskell2010

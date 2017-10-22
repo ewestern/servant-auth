@@ -1,13 +1,7 @@
-name:                servant-auth-client
-version:             0.2.7.1
-synopsis:            servant-client/servant-auth compatibility
-description:         |
-    This package provides instances that allow generating clients from
-    <https://hackage.haskell.org/package/servant servant>
-    APIs that use
-    <https://hackage.haskell.org/package/servant-auth servant-auth's> @Auth@ combinator.
-
-    For a quick overview of the usage, see the <http://github.com/plow-technologies/servant-auth#readme README>.
+name:                servant-auth-swagger
+version:             0.2.7.0
+synopsis:            servant-swagger/servant-auth compatibility
+description:         Please see README.md
 homepage:            http://github.com/plow-technologies/servant-auth#readme
 license:             BSD3
 license-file:        LICENSE
@@ -24,12 +18,14 @@ extra-source-files:
   - package.yaml
 
 dependencies:
-  - base                >= 4.7  && < 4.11
+  - base >= 4.7 && < 4.11
   - text
-  - bytestring
-  - servant-client      >= 0.7  && < 0.12
-  - servant-auth        == 0.2.*
-  - servant             >= 0.7  && < 0.12
+  - servant-swagger
+  - swagger2 >= 2 && < 3
+  - servant
+  - servant-auth == 0.2.*
+  - lens
+
 
 default-extensions:
   - AutoDeriveTypeable
@@ -59,23 +55,13 @@ library:
 tests:
   spec:
     main:            Spec.hs
-    other-modules:   [Servant.Auth.ClientSpec]
+    other-modules:   [Servant.Auth.SwaggerSpec]
     source-dirs:     test
     dependencies:
-      - servant-auth-client
+      - servant-auth-swagger
+      - yaml
       - hspec > 2 && < 3
       - QuickCheck >= 2.8 && < 2.11
-      - aeson
-      - bytestring
-      - http-client
-      - http-types
-      - servant-auth-server
-      - servant-server
-      - time
-      - transformers
-      - wai
-      - warp
-      - jose
   doctest:
     main:            Doctest.hs
     other-modules:   []

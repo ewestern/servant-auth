@@ -1,18 +1,16 @@
 {-# LANGUAGE GeneralizedNewtypeDeriving #-}
 {-# LANGUAGE PolyKinds                  #-}
+{-# LANGUAGE TupleSections              #-}
 {-# LANGUAGE UndecidableInstances       #-}
+
 module Servant.Auth.Server.Internal.AddSetCookie where
 
-import           Blaze.ByteString.Builder   (toByteString)
-import qualified Data.ByteString            as BS
-import qualified Data.ByteString.Base64     as BS64
-import           Data.ByteString.Conversion (ToByteString (..))
-import           Data.Monoid
-import           Data.String                (IsString)
-import qualified Data.Text.Encoding         as T
-import           GHC.Generics               (Generic)
+import           Blaze.ByteString.Builder (toByteString)
+import qualified Data.ByteString          as BS
+import           Data.Tagged              (Tagged (..))
+import qualified Network.HTTP.Types       as HTTP
+import           Network.Wai              (mapResponseHeaders)
 import           Servant
-import           System.Entropy             (getEntropy)
 import           Web.Cookie
 
 -- What are we doing here? Well, the idea is to add headers to the response,
@@ -23,48 +21,69 @@ import           Web.Cookie
 --
 -- TODO: If the endpoints already have headers, this will not work as is.
 
+data Nat = Z | S Nat
+
+type family AddSetCookiesApi (n :: Nat) a where
+  AddSetCookiesApi ('S 'Z) a = AddSetCookieApi a
+  AddSetCookiesApi ('S n) a = AddSetCookiesApi n (AddSetCookieApi a)
 
 type family AddSetCookieApi a where
   AddSetCookieApi (a :> b) = a :> AddSetCookieApi b
   AddSetCookieApi (a :<|> b) = AddSetCookieApi a :<|> AddSetCookieApi b
   AddSetCookieApi (Verb method stat ctyps (Headers ls a))
-     = Verb method stat ctyps (Headers ((Header "Set-Cookie" BSS) ': ls) a)
+     = Verb method stat ctyps (Headers ((Header "Set-Cookie" SetCookie) ': ls) a)
   AddSetCookieApi (Verb method stat ctyps a)
-     = Verb method stat ctyps (Headers '[Header "Set-Cookie" BSS] a)
+     = Verb method stat ctyps (Headers '[Header "Set-Cookie" SetCookie] a)
+  AddSetCookieApi Raw = Raw
 
+data SetCookieList (n :: Nat) :: * where
+  SetCookieNil :: SetCookieList 'Z
+  SetCookieCons :: Maybe SetCookie -> SetCookieList n -> SetCookieList ('S n)
 
-class AddSetCookie orig new where
-  addSetCookie :: [SetCookie] -> orig -> new
+class AddSetCookies (n :: Nat) orig new where
+  addSetCookies :: SetCookieList n -> orig -> new
 
-instance {-# OVERLAPS #-} AddSetCookie oldb newb
-  => AddSetCookie (a -> oldb) (a -> newb) where
-  addSetCookie cookie oldfn = \val -> addSetCookie cookie $ oldfn val
+instance {-# OVERLAPS #-} AddSetCookies ('S n) oldb newb
+  => AddSetCookies ('S n) (a -> oldb) (a -> newb) where
+  addSetCookies cookies oldfn = \val -> addSetCookies cookies $ oldfn val
+
+instance AddSetCookies 'Z orig orig where
+  addSetCookies _ = id
 
 instance {-# OVERLAPPABLE #-}
   ( Functor m
-  , AddHeader "Set-Cookie" BSS old new
-  ) => AddSetCookie (m old) (m new)  where
-  addSetCookie cookie val
-    -- What is happening here is sheer awfulness. Look the other way.
-    = addHeader (BSS $ foldr1 go $ toByteString . renderSetCookie <$> cookie) <$> val
-    where
-      go new old = old <> "\r\nSet-Cookie: " <> new
+  , AddSetCookies n (m old) (m cookied)
+  , AddHeader "Set-Cookie" SetCookie cookied new
+  ) => AddSetCookies ('S n) (m old) (m new)  where
+  addSetCookies (mCookie `SetCookieCons` rest) oldVal =
+    case mCookie of
+      Nothing -> noHeader <$> addSetCookies rest oldVal
+      Just cookie -> addHeader cookie <$> addSetCookies rest oldVal
 
 instance {-# OVERLAPS #-}
-  (AddSetCookie a a', AddSetCookie b b')
-  => AddSetCookie (a :<|> b) (a' :<|> b') where
-  addSetCookie cookie (a :<|> b) = addSetCookie cookie a :<|> addSetCookie cookie b
+  (AddSetCookies ('S n) a a', AddSetCookies ('S n) b b')
+  => AddSetCookies ('S n) (a :<|> b) (a' :<|> b') where
+  addSetCookies cookies (a :<|> b) = addSetCookies cookies a :<|> addSetCookies cookies b
 
+-- | for @servant <0.11@
+instance
+  AddSetCookies ('S n) Application Application where
+  addSetCookies cookies r request respond
+    = r request (\response -> respond
+               $ mapResponseHeaders (++ mkHeaders cookies) response)
 
-newtype BSS = BSS { getBSS :: BS.ByteString }
-  deriving (Eq, Show, Read, Generic, IsString, Monoid)
+-- | for @servant >=0.11@
+instance
+  AddSetCookies ('S n) (Tagged m Application) (Tagged m Application) where
+  addSetCookies cookies r = Tagged $ \request respond ->
+    unTagged r request (\response -> respond
+               $ mapResponseHeaders (++ mkHeaders cookies) response)
 
-instance ToHttpApiData BSS where
-  toHeader = getBSS
-  toUrlPiece = T.decodeUtf8 . getBSS
-
-instance ToByteString BSS where
-  builder (BSS x) = builder x
-
-csrfCookie :: IO BS.ByteString
-csrfCookie = BS64.encode <$> getEntropy 32
+mkHeaders :: SetCookieList x -> [HTTP.Header]
+mkHeaders x = ("Set-Cookie",) <$> mkCookies x
+  where
+   mkCookies :: forall y. SetCookieList y -> [BS.ByteString]
+   mkCookies SetCookieNil = []
+   mkCookies (SetCookieCons Nothing rest) = mkCookies rest
+   mkCookies (SetCookieCons (Just y) rest)
+     = toByteString (renderSetCookie y) : mkCookies rest

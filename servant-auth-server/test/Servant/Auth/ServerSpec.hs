@@ -1,40 +1,61 @@
+{-# LANGUAGE CPP #-}
 module Servant.Auth.ServerSpec (spec) where
 
 import           Control.Lens
-import           Control.Monad.Except     (runExceptT)
-import           Crypto.JOSE              (Alg (HS256, None), Error, JWK,
-                                           JWSHeader,
-                                           KeyMaterialGenParam (OctGenParam),
-                                           Protection (Protected), ToCompact,
-                                           encodeCompact, genJWK, newJWSHeader)
-import           Crypto.JWT               (Audience (..), ClaimsSet, JWT,
-                                           NumericDate (NumericDate), claimAud,
-                                           claimNbf, createJWSJWT,
-                                           emptyClaimsSet, unregisteredClaims)
-import           Data.Aeson               (FromJSON, ToJSON, Value, toJSON)
-import           Data.Aeson.Lens          (_JSON)
-import qualified Data.ByteString          as BS
-import qualified Data.ByteString.Lazy     as BSL
-import           Data.CaseInsensitive     (mk)
-import           Data.Foldable            (find)
+import           Control.Monad.Except                (runExceptT)
+import           Crypto.JOSE                         (Alg (HS256, None), Error,
+                                                      JWK, JWSHeader,
+                                                      KeyMaterialGenParam (OctGenParam),
+                                                      Protection (Protected),
+                                                      ToCompact, encodeCompact,
+                                                      genJWK, newJWSHeader)
+import           Crypto.JWT                          (Audience (..), ClaimsSet,
+                                                      JWT,
+                                                      NumericDate (NumericDate),
+                                                      claimAud, claimNbf,
+                                                      createJWSJWT,
+                                                      emptyClaimsSet,
+                                                      unregisteredClaims)
+import           Data.Aeson                          (FromJSON, ToJSON, Value,
+                                                      toJSON)
+import           Data.Aeson.Lens                     (_JSON)
+import qualified Data.ByteString                     as BS
+import qualified Data.ByteString.Lazy                as BSL
+import           Data.CaseInsensitive                (mk)
+import           Data.Foldable                       (find)
 import           Data.Monoid
 import           Data.Time
-import           GHC.Generics             (Generic)
-import           Network.HTTP.Client      (HttpException (StatusCodeException),
-                                           cookie_http_only, cookie_name,
-                                           cookie_value, destroyCookieJar)
-import           Network.HTTP.Types       (Status, status200, status401)
-import           Network.Wai.Handler.Warp (testWithApplication)
-import           Network.Wreq             (Options, auth, basicAuth,
-                                           cookieExpiryTime, cookies, defaults,
-                                           get, getWith, header, oauth2Bearer,
-                                           responseBody, responseCookieJar,
-                                           responseStatus)
-import           Servant                  hiding (BasicAuth, IsSecure (..))
+import           GHC.Generics                        (Generic)
+import           Network.HTTP.Client                 (cookie_http_only,
+                                                      cookie_name, cookie_value,
+                                                      destroyCookieJar)
+import           Network.HTTP.Types                  (Status, status200,
+                                                      status401)
+import           Network.Wai                         (responseLBS)
+import           Network.Wai.Handler.Warp            (testWithApplication)
+import           Network.Wreq                        (Options, auth, basicAuth,
+                                                      cookieExpiryTime, cookies,
+                                                      defaults, get, getWith,
+                                                      header, oauth2Bearer,
+                                                      responseBody,
+                                                      responseCookieJar,
+                                                      responseHeader,
+                                                      responseStatus)
+import           Servant                             hiding (BasicAuth,
+                                                      IsSecure (..))
 import           Servant.Auth.Server
-import           System.IO.Unsafe         (unsafePerformIO)
+import           Servant.Auth.Server.SetCookieOrphan ()
+import           System.IO.Unsafe                    (unsafePerformIO)
 import           Test.Hspec
 import           Test.QuickCheck
+
+#if MIN_VERSION_http_client(0,5,0)
+import qualified Network.HTTP.Client as HCli
+#else
+import Network.HTTP.Client (HttpException (StatusCodeException))
+#endif
+
+
 
 spec :: Spec
 spec = do
@@ -64,6 +85,31 @@ authSpec
 
   it "fails (403) if one authentication fails" $ const $
     pendingWith "Authentications don't yet fail, only are Indefinite"
+
+  it "doesn't clobber pre-existing response headers" $ \port -> property $
+                                                \(user :: User) -> do
+    jwt <- makeJWT user jwtCfg Nothing
+    opts <- addJwtToHeader jwt
+    resp <- getWith opts (url port ++ "/header")
+    resp ^. responseHeader "Blah" `shouldBe` "1797"
+    resp ^. responseHeader "Set-Cookie" `shouldSatisfy` (/= "")
+
+  context "Raw" $ do
+
+    it "gets the response body" $ \port -> property $ \(user :: User) -> do
+      jwt <- makeJWT user jwtCfg Nothing
+      opts <- addJwtToHeader jwt
+      resp <- getWith opts (url port ++ "/raw")
+      resp ^. responseBody `shouldBe` "how are you?"
+
+    it "doesn't clobber pre-existing reponse headers" $ \port -> property $
+                                                \(user :: User) -> do
+      jwt <- makeJWT user jwtCfg Nothing
+      opts <- addJwtToHeader jwt
+      resp <- getWith opts (url port ++ "/raw")
+      resp ^. responseHeader "hi" `shouldBe` "there"
+      resp ^. responseHeader "Set-Cookie" `shouldSatisfy` (/= "")
+
 
   context "Setting cookies" $ do
 
@@ -253,7 +299,13 @@ throwAllSpec = describe "throwAll" $ do
 ------------------------------------------------------------------------------
 -- * API and Server {{{
 
-type API auths = Auth auths User :> Get '[JSON] Int
+type API auths
+    = Auth auths User :>
+        ( Get '[JSON] Int
+       :<|> ReqBody '[JSON] Int :> Post '[JSON] Int
+       :<|> "header" :> Get '[JSON] (Headers '[Header "Blah" Int] Int)
+       :<|> "raw" :> Raw
+        )
 
 jwtOnlyApi :: Proxy (API '[Servant.Auth.Server.JWT])
 jwtOnlyApi = Proxy
@@ -303,12 +355,30 @@ app api = serveWithContext api ctx server
 
 
 server :: Server (API auths)
-server = getInt
+server authResult = case authResult of
+  Authenticated usr -> getInt usr
+                  :<|> postInt usr
+                  :<|> getHeaderInt
+                  :<|> raw
+  Indefinite -> throwAll err401
+  _ -> throwAll err403
   where
-    getInt :: AuthResult User -> Handler Int
-    getInt (Authenticated usr) = return . length $ name usr
-    getInt Indefinite = throwError err401
-    getInt _ = throwError err403
+    getInt :: User -> Handler Int
+    getInt usr = return . length $ name usr
+
+    postInt :: User -> Int -> Handler Int
+    postInt _ = return
+
+    getHeaderInt :: Handler (Headers '[Header "Blah" Int] Int)
+    getHeaderInt = return $ addHeader 1797 17
+
+    raw :: Server Raw
+    raw =
+#if MIN_VERSION_servant_server(0,11,0)
+      Tagged $
+#endif
+      \_req respond ->
+        respond $ responseLBS status200 [("hi", "there")] "how are you?"
 
 -- }}}
 ------------------------------------------------------------------------------
@@ -341,9 +411,15 @@ addCookie opts cookie' = opts & header "Cookie" %~ \c -> case c of
                         []  -> [cookie']
                         _   -> error "expecting single cookie header"
 
+
 shouldHTTPErrorWith :: IO a -> Status -> Expectation
 shouldHTTPErrorWith act stat = act `shouldThrow` \e -> case e of
+#if MIN_VERSION_http_client(0,5,0)
+  HCli.HttpExceptionRequest _ (HCli.StatusCodeException resp _)
+    -> HCli.responseStatus resp == stat
+#else
   StatusCodeException x _ _ -> x == stat
+#endif
   _ -> False
 
 url :: Int -> String

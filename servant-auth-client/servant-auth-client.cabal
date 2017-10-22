@@ -1,9 +1,9 @@
--- This file has been generated from package.yaml by hpack version 0.14.0.
+-- This file has been generated from package.yaml by hpack version 0.18.1.
 --
 -- see: https://github.com/sol/hpack
 
 name:           servant-auth-client
-version:        0.2.0.0
+version:        0.2.7.1
 synopsis:       servant-client/servant-auth compatibility
 description:    This package provides instances that allow generating clients from
                 <https://hackage.haskell.org/package/servant servant>
@@ -19,9 +19,12 @@ maintainer:     jkarni@gmail.com
 copyright:      (c) Julian K. Arni
 license:        BSD3
 license-file:   LICENSE
-tested-with:    GHC == 7.10.2, GHC == 8.0.1
+tested-with:    GHC == 7.10.2, GHC == 8.0.1, GHC == 8.2.1
 build-type:     Simple
 cabal-version:  >= 1.10
+
+extra-source-files:
+    package.yaml
 
 source-repository head
   type: git
@@ -33,12 +36,12 @@ library
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base                >= 4.7  && < 4.10
+      base                >= 4.7  && < 4.11
     , text
     , bytestring
-    , servant-client      >= 0.7  && < 0.10
+    , servant-client      >= 0.7  && < 0.12
     , servant-auth        == 0.2.*
-    , servant             >= 0.7  && < 0.10
+    , servant             >= 0.7  && < 0.12
   exposed-modules:
       Servant.Auth.Client
       Servant.Auth.Client.Internal
@@ -52,18 +55,15 @@ test-suite doctest
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base                >= 4.7  && < 4.10
+      base                >= 4.7  && < 4.11
     , text
     , bytestring
-    , servant-client      >= 0.7  && < 0.10
+    , servant-client      >= 0.7  && < 0.12
     , servant-auth        == 0.2.*
-    , servant             >= 0.7  && < 0.10
-    , doctest >= 0.9 && < 0.12
-    , Glob >= 0.7 && < 0.8
+    , servant             >= 0.7  && < 0.12
+    , doctest >= 0.9 && < 0.14
+    , Glob >= 0.7 && < 0.10
     , yaml == 0.8.*
-  other-modules:
-      Servant.Auth.ClientSpec
-      Spec
   default-language: Haskell2010
 
 test-suite spec
@@ -74,15 +74,15 @@ test-suite spec
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base                >= 4.7  && < 4.10
+      base                >= 4.7  && < 4.11
     , text
     , bytestring
-    , servant-client      >= 0.7  && < 0.10
+    , servant-client      >= 0.7  && < 0.12
     , servant-auth        == 0.2.*
-    , servant             >= 0.7  && < 0.10
+    , servant             >= 0.7  && < 0.12
     , servant-auth-client
     , hspec > 2 && < 3
-    , QuickCheck >= 2.8 && < 2.9
+    , QuickCheck >= 2.8 && < 2.11
     , aeson
     , bytestring
     , http-client
@@ -95,6 +95,5 @@ test-suite spec
     , warp
     , jose
   other-modules:
-      Doctest
       Servant.Auth.ClientSpec
   default-language: Haskell2010

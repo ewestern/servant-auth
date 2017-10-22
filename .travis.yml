@@ -2,8 +2,8 @@ sudo: false
 
 env:
   - STACK_YAML=stack.yaml
-  - STACK_YAML=stack-ghc-8.0.1.yaml
-  - STACK_YAML=stack-servant-0.9.yaml
+  - STACK_YAML=stack-ghc-8.0.2.yaml
+  - STACK_YAML=stack-ghc-8.2.1.yaml
 
 addons:
   apt:
@@ -19,13 +19,10 @@ install:
 script:
   - stack setup --no-terminal
   - stack build --ghc-options=-Werror --no-terminal
-  - stack test --ghc-options=-Werror --no-terminal --coverage
+  - stack test --ghc-options=-Werror --no-terminal
   - stack haddock --no-terminal
+  # check that the readme is equal to the one we try to compile
   - cmp README.md servant-auth-server/executables/README.lhs
-
-after_script:
-  - travis_retry curl -L https://github.com/rubik/stack-hpc-coveralls/releases/download/v0.0.3.0/shc-linux-x64-$GHCVER.tar.bz2 | tar -xj
-  - ./shc combined all
 
 cache:
   directories:
