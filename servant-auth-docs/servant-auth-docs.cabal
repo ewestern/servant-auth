@@ -1,6 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.17.1.
+-- This file has been generated from package.yaml by hpack version 0.20.0.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: 84d42992a1c5a55324f3ca2a16bced1c3a70f66999bf0e7ff041bb384535a935
 
 name:           servant-auth-docs
 version:        0.2.7.0
@@ -31,12 +33,12 @@ library
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.11
-    , text
-    , servant-docs
-    , servant
-    , servant-auth == 0.2.*
+      base >=4.7 && <4.11
     , lens
+    , servant
+    , servant-auth ==0.2.*
+    , servant-docs
+    , text
   exposed-modules:
       Servant.Auth.Docs
   default-language: Haskell2010
@@ -49,15 +51,15 @@ test-suite doctest
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.11
-    , text
-    , servant-docs
-    , servant
-    , servant-auth == 0.2.*
+      Glob >=0.7 && <0.9
+    , base >=4.7 && <4.11
+    , doctest >=0.9 && <0.12
     , lens
-    , doctest >= 0.9 && < 0.12
-    , Glob >= 0.7 && < 0.9
-    , yaml == 0.8.*
+    , servant
+    , servant-auth ==0.2.*
+    , servant-docs
+    , text
+    , yaml ==0.8.*
   default-language: Haskell2010
 
 test-suite spec
@@ -68,13 +70,13 @@ test-suite spec
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.11
-    , text
-    , servant-docs
-    , servant
-    , servant-auth == 0.2.*
+      QuickCheck >=2.8 && <2.11
+    , base >=4.7 && <4.11
+    , hspec >2 && <3
     , lens
+    , servant
+    , servant-auth ==0.2.*
     , servant-auth-docs
-    , hspec > 2 && < 3
-    , QuickCheck >= 2.8 && < 2.11
+    , servant-docs
+    , text
   default-language: Haskell2010

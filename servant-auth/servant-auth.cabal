@@ -1,6 +1,8 @@
--- This file has been generated from package.yaml by hpack version 0.18.1.
+-- This file has been generated from package.yaml by hpack version 0.20.0.
 --
 -- see: https://github.com/sol/hpack
+--
+-- hash: 8fe21e4f2f35f98805aee40b9cb636a5f26908d43964e4d3c2e38e365169b988
 
 name:           servant-auth
 version:        0.2.7.0
@@ -38,7 +40,7 @@ library
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.11
+      base >=4.7 && <4.11
   exposed-modules:
       Servant.Auth
   default-language: Haskell2010
@@ -51,10 +53,10 @@ test-suite doctest
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.11
-    , doctest >= 0.9 && < 0.14
-    , Glob >= 0.7 && < 0.10
-    , yaml == 0.8.*
+      Glob >=0.7 && <0.10
+    , base >=4.7 && <4.11
+    , doctest >=0.9 && <0.14
+    , yaml ==0.8.*
   default-language: Haskell2010
 
 test-suite spec
@@ -65,8 +67,8 @@ test-suite spec
   default-extensions: AutoDeriveTypeable ConstraintKinds DataKinds DefaultSignatures DeriveFoldable DeriveFunctor DeriveGeneric DeriveTraversable FlexibleContexts FlexibleInstances FunctionalDependencies GADTs KindSignatures MultiParamTypeClasses OverloadedStrings RankNTypes ScopedTypeVariables TypeFamilies TypeOperators
   ghc-options: -Wall
   build-depends:
-      base >= 4.7 && < 4.11
+      QuickCheck >=2.8 && <2.11
+    , base >=4.7 && <4.11
+    , hspec >2 && <3
     , servant-auth
-    , hspec > 2 && < 3
-    , QuickCheck >= 2.8 && < 2.11
   default-language: Haskell2010
