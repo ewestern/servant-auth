@@ -37,7 +37,7 @@ dependencies:
   - jose                    >= 0.5  && < 0.6
   - monad-time              >= 0.2  && < 0.3
   - time                    >= 1.5  && < 1.9
-  - servant-server          >= 0.9.1  && < 0.12
+  - servant-server          >= 0.9.1  && < 0.15
   - base64-bytestring       >= 1    && < 2
   - blaze-builder           >= 0.4  && < 0.5
   - unordered-containers    >= 0.2  && < 0.3
