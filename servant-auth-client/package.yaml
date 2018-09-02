@@ -27,9 +27,9 @@ dependencies:
   - base                >= 4.7  && < 4.11
   - text
   - bytestring
-  - servant-client      >= 0.7  && < 0.12
+  - servant-client      >= 0.7  && < 0.15
   - servant-auth        == 0.2.*
-  - servant             >= 0.7  && < 0.12
+  - servant             >= 0.7  && < 0.15
 
 default-extensions:
   - AutoDeriveTypeable
